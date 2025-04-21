@@ -60,7 +60,9 @@ public final class StringLib implements JavaFunction {
 
 	// NOTE: String.class won't work in J2ME - so this is used as a workaround
 	public static final Class STRING_CLASS = "".getClass();
-	
+
+	private static final char[] digits = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
 	static {
 		names = new String[NUM_FUNCTIONS];
 		names[SUB] = "sub";
@@ -108,22 +110,24 @@ public final class StringLib implements JavaFunction {
 		case LOWER: return lower(callFrame, nArguments);
 		case UPPER: return upper(callFrame, nArguments);
 		case REVERSE: return reverse(callFrame, nArguments);
-		case FORMAT: return format(callFrame, nArguments);
+		case FORMAT: return format(callFrame);
 		case FIND: return findAux(callFrame, true);
 		case MATCH: return findAux(callFrame, false);
-		case GSUB: return gsub(callFrame, nArguments);
+		case GSUB: return gsub(callFrame);
 		default: return 0; // Should never happen.
 		}
 	}
 
-	private long unsigned(long v) {
+	private long unsigned(long vv) {
+		long v = vv;
 		if (v < 0L) {
 			v += (1L << 32);
 		}
 		return v;
 	}
-	
-	private int format(LuaCallFrame callFrame, int nArguments) {
+
+	@SuppressWarnings({"PMD.NPathComplexity", "PMD.ExcessiveMethodLength"})
+	private int format(LuaCallFrame callFrame) {
 		String f = (String) BaseLib.getArg(callFrame, 1, BaseLib.TYPE_STRING, names[FORMAT]);
 
 		int len = f.length();
@@ -258,7 +262,7 @@ public final class StringLib implements JavaFunction {
 						width = 0;
 						break;
 					default:
-						throw new RuntimeException("invalid option '%" + c +
+						throw new IllegalStateException("invalid option '%" + c +
 						"' to 'format'");
 					}
 					
@@ -301,10 +305,8 @@ public final class StringLib implements JavaFunction {
 								if (precision <= digits) {
 									result.append(basePrepend);
 								}
-							} else if (base == 16) {
-								if (vLong != 0) {
-									result.append(basePrepend);
-								}
+							} else if (base == 16 && vLong != 0) {
+								result.append(basePrepend);
 							}
 						}
 						
@@ -443,7 +445,7 @@ public final class StringLib implements JavaFunction {
 						result.append('"');
 						break;
 					default:
-						throw new RuntimeException("Internal error");
+						throw new IllegalStateException("Internal error");
 					}
 					if (leftJustify) {
 						int currentResultLength = result.length();
@@ -504,18 +506,18 @@ public final class StringLib implements JavaFunction {
 		}
 	}
 	
-	private static final char[] digits = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 	/**
 	 * Precondition: value >= 0
 	 * Precondition: 2 <= base <= 16 
 	 * @param sb the stringbuffer to append to
-	 * @param value the value to append
+	 * @param pValue the value to append
 	 * @param base the base to use when formatting (typically 8, 10 or 16)
-	 * @param minDigits 
-	 * @param zeroIsEmpty if the value is 0, should the zero be printed or not?
+	 * @param mminDigits min digits
 	 */
-	private static void stringBufferAppend(StringBuffer sb, double value, int base, boolean printZero, int minDigits) {
+	private static void stringBufferAppend(StringBuffer sb, double pValue, int base, boolean printZero, int mminDigits) {
+		double value = pValue;
 		int startPos = sb.length();
+		int minDigits = mminDigits;
 		while (value > 0 || minDigits > 0) {
 			double newValue = Math.floor(value / base);
 			sb.append(digits[(int) (value - (newValue * base))]);
@@ -543,13 +545,9 @@ public final class StringLib implements JavaFunction {
 	
 	/**
 	 * Only works with non-negative numbers
-	 * @param buffer
-	 * @param number
-	 * @param precision
-	 * @param requirePeriod
 	 */
-	private void appendPrecisionNumber(StringBuffer buffer, double number, int precision, boolean requirePeriod) {
-		number = MathLib.roundToPrecision(number, precision);
+	private void appendPrecisionNumber(StringBuffer buffer, double pNumber, int precision, boolean requirePeriod) {
+		double number = MathLib.roundToPrecision(pNumber, precision);
 		double iPart = Math.floor(number);
 		double fPart = number - iPart;
 		
@@ -569,12 +567,9 @@ public final class StringLib implements JavaFunction {
 
 	/**
 	 * Only works with non-negative numbers
-	 * @param buffer
-	 * @param number
-	 * @param significantDecimals
-	 * @param includeTrailingZeros
 	 */
-	private void appendSignificantNumber(StringBuffer buffer, double number, int significantDecimals, boolean includeTrailingZeros) {
+	private void appendSignificantNumber(StringBuffer buffer, double number, int pSignificantDecimals, boolean includeTrailingZeros) {
+		int significantDecimals = pSignificantDecimals;
 		double iPart = Math.floor(number);
 		
 		stringBufferAppend(buffer, iPart, 10, true, 0);
@@ -620,8 +615,9 @@ public final class StringLib implements JavaFunction {
 		}
 	}
 
-	private void appendScientificNumber(StringBuffer buffer, double x, int precision, boolean repr, boolean useSignificantNumbers) {
+	private void appendScientificNumber(StringBuffer buffer, double xx, int precision, boolean repr, boolean useSignificantNumbers) {
 		int exponent = 0;
+		double x = xx;
 		
 		// Run two passes to handle cases such as %.2e with the value 95.
 		for (int i = 0; i < 2; i++) {
@@ -695,6 +691,7 @@ public final class StringLib implements JavaFunction {
 		return 1;
 	}
 
+	@SuppressWarnings({"PMD.NPathComplexity", "PMD.ExcessiveMethodLength"})
 	private int stringByte(LuaCallFrame callFrame, int nArguments) {
 		BaseLib.luaAssert(nArguments >= 1, "not enough arguments");
 		String s = getStringArg(callFrame, 1, names[BYTE]);
@@ -716,7 +713,8 @@ public final class StringLib implements JavaFunction {
 			dj2 = LuaState.fromDouble(dj);
 		}
 
-		int ii = (int) di2, ij = (int) dj2;
+		int ii = (int) di2;
+		int ij = (int) dj2;
 
 		int len = s.length();
 		if (ii < 0) {
@@ -792,12 +790,6 @@ public final class StringLib implements JavaFunction {
 
 	public static class MatchState {
 
-		public MatchState () {
-			capture = new Capture[ LUA_MAXCAPTURES ];
-			for ( int i = 0; i < LUA_MAXCAPTURES; i ++ ) {
-				capture[i] = new Capture ();
-			}
-		}
 		public StringPointer src_init;  /* init of source string */
 
 		public int endIndex; /* end (`\0') of source string */
@@ -811,6 +803,13 @@ public final class StringLib implements JavaFunction {
 
 			public StringPointer init;
 			public int len;
+		}
+
+		public MatchState () {
+			capture = new Capture[ LUA_MAXCAPTURES ];
+			for ( int i = 0; i < LUA_MAXCAPTURES; i ++ ) {
+				capture[i] = new Capture ();
+			}
 		}
 
 		public Object[] getCaptures() {
@@ -915,19 +914,19 @@ public final class StringLib implements JavaFunction {
 		}
 	}
 
-	private static Object push_onecapture ( MatchState ms, int i, StringPointer s, StringPointer e ) {
+	private static Object pushOnecapture(MatchState ms, int i, StringPointer s, StringPointer e ) {
 		if (i >= ms.level) {
 			if ( i == 0 ) { // ms->level == 0, too
 				String res = s.string.substring(s.index, e.index);
 				ms.callFrame.push(res);
 				return res;
 			} else {
-				throw new RuntimeException("invalid capture index");
+				throw new IllegalStateException("invalid capture index");
 			}
 		} else {
 			int l = ms.capture[i].len;
 			if (l == CAP_UNFINISHED) {
-				throw new RuntimeException("unfinished capture");
+				throw new IllegalStateException("unfinished capture");
 			} else if (l == CAP_POSITION) {
 				Double res = new Double(ms.src_init.length() - ms.capture[i].init.length() + 1);
 				ms.callFrame.push(res);
@@ -941,11 +940,11 @@ public final class StringLib implements JavaFunction {
 		}
 	}
 
-	private static int push_captures ( MatchState ms, StringPointer s, StringPointer e ) {
+	private static int pushCaptures(MatchState ms, StringPointer s, StringPointer e ) {
 		int nlevels = ( ms.level == 0 && s != null ) ? 1 : ms.level;
 		BaseLib.luaAssert(nlevels <= LUA_MAXCAPTURES, "too many captures");
 		for (int i = 0; i < nlevels; i++) {
-			push_onecapture (ms, i, s, e);
+			pushOnecapture(ms, i, s, e);
 		}
 		return nlevels;  // number of strings pushed
 	}
@@ -960,6 +959,7 @@ public final class StringLib implements JavaFunction {
 		return true;
 	}
 
+	@SuppressWarnings({"PMD.NPathComplexity", "PMD.ExcessiveMethodLength"})
 	private static int findAux (LuaCallFrame callFrame, boolean find ) {
 		String f = find ? names[FIND] : names[MATCH];
 		String source = (String) BaseLib.getArg(callFrame, 1, BaseLib.TYPE_STRING, f);
@@ -1006,9 +1006,9 @@ public final class StringLib implements JavaFunction {
 				if ( ( res = match ( ms, s1, p ) ) != null ) {
 					if ( find ) {
 						return callFrame.push(new Double(s.length () - s1.length () + 1), new Double(s.length () - res.length ())) +
-						push_captures ( ms, null, null );
+						pushCaptures( ms, null, null );
 					} else {
-						return push_captures ( ms, s1, res );
+						return pushCaptures( ms, s1, res );
 					}
 				}
 
@@ -1039,7 +1039,7 @@ public final class StringLib implements JavaFunction {
 				return level;
 			}
 		}
-		throw new RuntimeException("invalid pattern capture");
+		throw new IllegalStateException("invalid pattern capture");
 	}
 
 	private static StringPointer endCapture ( MatchState ms, StringPointer s, StringPointer p ) {
@@ -1052,17 +1052,16 @@ public final class StringLib implements JavaFunction {
 		return res;
 	}
 
-	private static int checkCapture ( MatchState ms, int l ) {
-		l -= '1'; // convert chars 1-9 to actual ints 1-9
+	private static int checkCapture ( MatchState ms, int ll ) {
+		int l = ll - '1'; // convert chars 1-9 to actual ints 1-9
 		BaseLib.luaAssert(l < 0 || l >= ms.level || ms.capture[l].len == CAP_UNFINISHED,
 		"invalid capture index");
 		return l;
 	}
 
-	private static StringPointer matchCapture ( MatchState ms, StringPointer s, int l ) {
-		int len;
-		l = checkCapture ( ms, l );
-		len = ms.capture[l].len;
+	private static StringPointer matchCapture ( MatchState ms, StringPointer s, int ll ) {
+		int l = checkCapture ( ms, ll );
+		int len = ms.capture[l].len;
 		if ( ( ms.endIndex - s.length () ) >= len && ms.capture[l].init.compareTo(s, len) == 0 ) {
 			StringPointer sp = s.getClone();
 			sp.postIncrString ( len );
@@ -1100,7 +1099,7 @@ public final class StringLib implements JavaFunction {
 		return null;  /* string ends out of balance */
 	}
 
-	private static StringPointer classEnd ( MatchState ms, StringPointer pp ) {
+	private static StringPointer classEnd ( StringPointer pp ) {
 		StringPointer p = pp.getClone();
 		switch ( p.postIncrString ( 1 ) ) {
 		case L_ESC: {
@@ -1250,7 +1249,7 @@ public final class StringLib implements JavaFunction {
 					p.postIncrString (2);
 					BaseLib.luaAssert(p.getChar() == '[' , "missing '[' after '%%f' in pattern");
 
-					StringPointer ep = classEnd(ms, p);  // points to what is next
+					StringPointer ep = classEnd(p);  // points to what is next
 					char previous = (s.getIndex() == ms.src_init.getIndex()) ? '\0' : s.getChar(-1);
 
 					StringPointer ep1 = ep.getClone();
@@ -1292,7 +1291,7 @@ public final class StringLib implements JavaFunction {
 
 			if (isDefault) { // it is a pattern item
 				isDefault = false;
-				StringPointer ep = classEnd(ms, p);  // points to what is next
+				StringPointer ep = classEnd(p);  // points to what is next
 				boolean m = (s.getIndex () < ms.endIndex && singleMatch(s.getChar(), p, ep));
 				switch (ep.getChar()) {
 				case '?':  { // optional
@@ -1375,7 +1374,8 @@ public final class StringLib implements JavaFunction {
 		return ( c >= '0' && c <= '9' ) || ( c >= 'a' && c <= 'f' ) || ( c >= 'A' && c <= 'F' );
 	}
 
-	private static int gsub(LuaCallFrame cf, int nargs) {
+	@SuppressWarnings({"PMD.NPathComplexity", "PMD.ExcessiveMethodLength"})
+	private static int gsub(LuaCallFrame cf) {
 		String srcTemp = (String)BaseLib.getArg(cf, 1, BaseLib.TYPE_STRING, names[GSUB]);
 		String pTemp = (String)BaseLib.getArg(cf, 2, BaseLib.TYPE_STRING, names[GSUB]);
 		Object repl = BaseLib.getArg(cf, 3, null, names[GSUB]);
@@ -1481,7 +1481,7 @@ public final class StringLib implements JavaFunction {
 					int captureIndex = replStr.getChar(i) - '1';
 					Object[] captures = ms.getCaptures();
 					if (captures == null || captureIndex > ms.level) {
-						throw new RuntimeException("invalid capture index");
+						throw new IllegalStateException("invalid capture index");
 					}
 					Object o = captures[captureIndex];
 					if(o instanceof Double) {

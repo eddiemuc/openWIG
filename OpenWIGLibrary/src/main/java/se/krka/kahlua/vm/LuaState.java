@@ -199,7 +199,7 @@ public class LuaState {
 		Object o = currentThread.objectStack[base];
 
 		if (o == null) {
-			throw new RuntimeException("tried to call nil");
+			throw new IllegalStateException("tried to call nil");
 		}
 
 		if (o instanceof JavaFunction) {
@@ -207,7 +207,7 @@ public class LuaState {
 		}
 
 		if (!(o instanceof LuaClosure)) {
-			throw new RuntimeException("tried to call a non-function");
+			throw new IllegalStateException("tried to call a non-function");
 		}
 
 		LuaCallFrame callFrame = currentThread.pushNewCallFrame((LuaClosure) o, null,
@@ -255,7 +255,8 @@ public class LuaState {
 		return f;
 	}
 
-	private final void luaMainloop() {
+	@SuppressWarnings({"PMD.NPathComplexity", "PMD.ExcessiveMethodLength"})
+	private void luaMainloop() {
 		LuaCallFrame callFrame = currentThread.currentCallFrame();
 		LuaClosure closure = callFrame.closure;
 		LuaPrototype prototype = closure.prototype;
@@ -710,7 +711,7 @@ public class LuaState {
 							callFrame.setTop(prototype.maxStacksize);
 						}
 					} else {
-						throw new RuntimeException(
+						throw new IllegalStateException(
 								"Tried to call a non-function: " + fun);
 					}
 
@@ -1178,7 +1179,7 @@ public class LuaState {
 				if (isTable) {
 					return null;
 				}
-				throw new RuntimeException("attempted index of non-table: "
+				throw new IllegalStateException("attempted index of non-table: "
 						+ curObj);
 			}
 			if (metaOp instanceof JavaFunction || metaOp instanceof LuaClosure) {
@@ -1188,7 +1189,7 @@ public class LuaState {
 				curObj = metaOp;
 			}
 		}
-		throw new RuntimeException("loop in gettable");
+		throw new IllegalStateException("loop in gettable");
 	}
 
 	public void tableSet(Object table, Object key, Object value) {
@@ -1219,7 +1220,7 @@ public class LuaState {
 				curObj = metaOp;
 			}
 		}
-		throw new RuntimeException("loop in settable");
+		throw new IllegalStateException("loop in settable");
 	}
 
     public void setClassMetatable(Class clazz, LuaTable metatable) {
@@ -1370,27 +1371,15 @@ public class LuaState {
 		try {
 			return LuaPrototype.loadByteCode(stream, environment);
 		} catch (IOException e) {
-			throw new RuntimeException(e.getMessage());
+			throw new IllegalStateException(e.getMessage());
 		}
-	}
-	
-	/**
-	 * Not thread safe by default, so this does nothing.
-	 */
-	public void lock() {
-	}
-
-	/**
-	 * Not thread safe by default, so this does nothing.
-	 */
-	public void unlock() {
 	}
 
     public PrintStream getOut() {
         return out;
     }
 
-    public LuaTable getClassMetatable(Class clazz) {
+    public LuaTable getClassMetatable(final Class<?> clazz) {
         return (LuaTable) classMetatables.rawget(clazz);
     }
 }

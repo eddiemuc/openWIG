@@ -370,7 +370,7 @@ public final class LuaPrototype {
 				dos.write(4);
 				dumpString((String) o, dos);
 			} else {
-				throw new RuntimeException("Bad type in constant pool");
+				throw new IllegalStateException("Bad type in constant pool");
 			}
 		}
 

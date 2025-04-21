@@ -387,7 +387,7 @@ public final class BaseLib implements JavaFunction {
 	}
 
 	public static void fail(String msg) {
-		throw new RuntimeException(msg);
+		throw new IllegalStateException(msg);
 	}
 
 	public static String numberToString(Double num) {
@@ -421,7 +421,7 @@ public final class BaseLib implements JavaFunction {
 				String function) {
 		Object o = callFrame.get(n - 1);
 		if (o == null) {
-			throw new RuntimeException("bad argument #" + n + "to '" + function +
+			throw new IllegalStateException("bad argument #" + n + "to '" + function +
 				"' (" + type + " expected, got no value)");
 		}
 		// type coercion
@@ -435,7 +435,7 @@ public final class BaseLib implements JavaFunction {
 			if (d != null) {
 				return d;
 			}
-			throw new RuntimeException("bad argument #" + n + " to '" + function +
+			throw new IllegalStateException("bad argument #" + n + " to '" + function +
 			"' (number expected, got string)");
 		}
 		if (type != null) {
@@ -496,7 +496,7 @@ public final class BaseLib implements JavaFunction {
 		final Object oldMeta = state.getmetatable(o, raw);
 
 		if (!raw && oldMeta != null && state.tableGet(oldMeta, "__metatable") != null) {
-			throw new RuntimeException("Can not set metatable of protected object");
+			throw new IllegalStateException("Can not set metatable of protected object");
 		}
 
         state.setmetatable(o, newMeta);
@@ -572,7 +572,7 @@ public final class BaseLib implements JavaFunction {
 		if (o instanceof LuaTable) {
 			return "table 0x" + System.identityHashCode(o);
 		}
-		throw new RuntimeException("no __tostring found on object");
+		throw new IllegalStateException("no __tostring found on object");
 	}
 
 	private static int tonumber(LuaCallFrame callFrame, int nArguments) {
@@ -593,7 +593,7 @@ public final class BaseLib implements JavaFunction {
 		double dradix = LuaState.fromDouble(radixDouble);
 		int radix = (int) dradix;
 		if (radix != dradix) {
-			throw new RuntimeException("base is not an integer");
+			throw new IllegalStateException("base is not an integer");
 		}
 		Object res = tonumber(s, radix);
 		callFrame.push(res);
@@ -606,7 +606,7 @@ public final class BaseLib implements JavaFunction {
 
 	public static Double tonumber(String s, int radix)  {
 		if (radix < 2 || radix > 36) {
-			throw new RuntimeException("base out of range");
+			throw new IllegalStateException("base out of range");
 		}
 
 		try {
@@ -650,7 +650,7 @@ public final class BaseLib implements JavaFunction {
 			callFrame.set(2, toKiloBytes(totalMemory));
 			return 3;
 		}
-		throw new RuntimeException("invalid option: " + option);
+		throw new IllegalStateException("invalid option: " + option);
 	}
 
 	private static Double toKiloBytes(long freeMemory) {

@@ -23,10 +23,14 @@ public class EventTable implements LuaTable, Serializable {
 		}
 
 		public int call (LuaCallFrame callFrame, int nArguments) {
-			callFrame.push(parent.toString());
+			callFrame.push(parent.luaTostring()); //it is ESSENTIAL not to call toString() here!
 			return 1;
 		}
 	}
+
+
+	protected String luaTostring () { return "a ZTimer instance"; }
+
 
 	public EventTable() {
 		metatable.rawset("__tostring", new TostringJavaFunc(this));
