@@ -22,12 +22,10 @@ public class EventTable implements LuaTable, Serializable {
 		}
 
 		public int call (LuaCallFrame callFrame, int nArguments) {
-			callFrame.push(parent.luaTostring());
+			callFrame.push(parent.toString());
 			return 1;
 		}
-	};
-
-	protected String luaTostring () { return "a ZObject instance"; }
+	}
 
 	public EventTable() {
 		metatable.rawset("__tostring", new TostringJavaFunc(this));
@@ -135,7 +133,22 @@ public class EventTable implements LuaTable, Serializable {
 	}
 
 	public String toString()  {
-		return (name == null ? "(unnamed)" : name);
+		final StringBuilder sb = new StringBuilder(
+			"[" + this.getClass().getSimpleName() + "]" +
+			(name == null ? "(unnamed)" : name));
+
+		for (Object key : table.keys()) {
+			sb.append("/" + key + "=");
+			final Object value = table.rawget(key);
+			if (value == null) {
+				sb.append("nil");
+			} else if (value.getClass().isPrimitive()) {
+				sb.append(value);
+			} else {
+				sb.append(value.getClass().getName());
+			}
+		}
+		return sb.toString();
 	}
 
 	public void rawset(Object key, Object value) {
@@ -162,4 +175,8 @@ public class EventTable implements LuaTable, Serializable {
 	public Object next (Object key) { return table.next(key); }
 
 	public int len () { return table.len(); }
+
+	public Object[] keys() { return table.keys(); }
+
+
 }

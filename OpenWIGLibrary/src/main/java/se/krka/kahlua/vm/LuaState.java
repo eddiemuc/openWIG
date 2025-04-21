@@ -1210,7 +1210,7 @@ public class LuaState {
 				}
 			} else {
 				metaOp = getMetaOp(curObj, "__newindex");
-				BaseLib.luaAssert(metaOp != null,	"attempted index of non-table");
+				BaseLib.luaAssert(metaOp != null,	"attempted index of non-table: " + curObj);
 			}
 			if (metaOp instanceof JavaFunction || metaOp instanceof LuaClosure) {
 				call(metaOp, table, key, value);

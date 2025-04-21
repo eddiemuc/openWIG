@@ -195,6 +195,8 @@ public class ZonePoint implements LuaTable, Serializable {
 	public Object next (Object key) { return null; }
 	public int len () { return 3; }
 
+	public Object[] keys() { return new Object[] { "latitude", "longitude", "altitude"}; };
+
 	public void updateWeakSettings (boolean weakKeys, boolean weakValues) { }
 
 	public void serialize (DataOutputStream out) throws IOException {
