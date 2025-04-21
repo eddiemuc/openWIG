@@ -23,7 +23,7 @@ public class EventTable implements LuaTable, Serializable {
 		}
 
 		public int call (LuaCallFrame callFrame, int nArguments) {
-			callFrame.push(parent.toString());
+			callFrame.push(parent.luaTostring());
 			return 1;
 		}
 	};
@@ -136,27 +136,28 @@ public class EventTable implements LuaTable, Serializable {
 	}
 
 	public String toString()  {
-		final StringBuilder sb = new StringBuilder(baseToString(this));
-
-		for (Object key : table.keys()) {
-			sb.append("/" + key + "=");
-			final Object value = table.rawget(key);
-			if (value == null) {
-				sb.append("nil");
-			} else if (value.getClass().isPrimitive() ||
-				value instanceof Number ||
-				value instanceof String ||
-				value instanceof Character ||
-				value instanceof Boolean ||
-				value instanceof Date) {
-				sb.append(value);
-			} else if (value instanceof EventTable) {
-				sb.append(baseToString((EventTable) value));
-			} else {
-				sb.append(value.getClass().getName());
-			}
-		}
-		return sb.toString();
+		return "abc";
+//		final StringBuilder sb = new StringBuilder(baseToString(this));
+//
+//		for (Object key : table.keys()) {
+//			sb.append("/" + key + "=");
+//			final Object value = table.rawget(key);
+//			if (value == null) {
+//				sb.append("nil");
+//			} else if (value.getClass().isPrimitive() ||
+//				value instanceof Number ||
+//				value instanceof String ||
+//				value instanceof Character ||
+//				value instanceof Boolean ||
+//				value instanceof Date) {
+//				sb.append(value);
+//			} else if (value instanceof EventTable) {
+//				sb.append(baseToString((EventTable) value));
+//			} else {
+//				sb.append(value.getClass().getName());
+//			}
+//		}
+//		return sb.toString();
 	}
 
 	private static String baseToString(final EventTable et) {
