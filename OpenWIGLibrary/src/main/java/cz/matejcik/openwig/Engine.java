@@ -233,15 +233,17 @@ public class Engine implements Runnable {
 	/** utility function to dump stack trace and show a semi-meaningful error */
 	public static void stacktrace (Throwable e) {
 		e.printStackTrace();
-		String msg;
+		final StringBuilder msg = new StringBuilder(e.toString());
 		if (state != null) {
 			System.out.println(state.currentThread.stackTrace);
-			msg = e.toString() + "\n\nstack trace: " + state.currentThread.stackTrace;
-		} else {
-			msg = e.toString();
+			msg.append("\nstack trace: " + state.currentThread.stackTrace);
 		}
-		log(msg, LOG_ERROR);
-		ui.showError(msg);
+		for(StackTraceElement ste : e.getStackTrace()) {
+			msg.append("\nat " + ste);
+		}
+		final String msgString = msg.toString();
+		log(msgString, LOG_ERROR);
+		ui.showError(msgString);
 	}
 
 	/** stops Engine */

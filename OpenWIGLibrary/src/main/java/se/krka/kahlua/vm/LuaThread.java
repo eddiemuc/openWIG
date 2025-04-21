@@ -80,14 +80,14 @@ public class LuaThread {
 
 	public void popCallFrame() {
 		if (isDead()) {
-			throw new RuntimeException("Stack underflow");			
+			throw new IllegalStateException("Stack underflow");			
 		}
 		setCallFrameStackTop(callFrameTop - 1);
 	}
 	
 	private final void ensureCallFrameStackSize(int index) {
 		if (index > MAX_CALL_FRAME_STACK_SIZE) {
-			throw new RuntimeException("Stack overflow");			
+			throw new IllegalStateException("Stack overflow");			
 		}
 		int oldSize = callFrameStack.length;
 		int newSize = oldSize;
@@ -122,7 +122,7 @@ public class LuaThread {
 
 	private final void ensureStacksize(int index) {
 		if (index > MAX_STACK_SIZE) {
-			throw new RuntimeException("Stack overflow");			
+			throw new IllegalStateException("Stack overflow");			
 		}
 		int oldSize = objectStack.length;
 		int newSize = oldSize;

@@ -42,6 +42,46 @@ public class OsLib implements JavaFunction {
 	private static String[] funcnames;
 	private static OsLib[] funcs;
 
+	private static final String TABLE_FORMAT = "*t";
+	private static final String DEFAULT_FORMAT = "%c";
+
+	private static final String YEAR = "year";
+	private static final String MONTH = "month";
+	private static final String DAY = "day";
+	private static final String HOUR = "hour";
+	private static final String MIN = "min";
+	private static final String SEC = "sec";
+	private static final String WDAY = "wday";
+	private static final String YDAY = "yday";
+	private static final Object MILLISECOND = "milli";
+	//private static final String ISDST = "isdst";
+
+	private static TimeZone tzone = TimeZone.getDefault();
+
+	public static final int TIME_DIVIDEND = 1000; // number to divide by for converting from milliseconds.
+	public static final double TIME_DIVIDEND_INVERTED = 1.0 / TIME_DIVIDEND; // number to divide by for converting from milliseconds.
+	private static final int MILLIS_PER_DAY = TIME_DIVIDEND * 60 * 60 * 24;
+	private static final int MILLIS_PER_WEEK = MILLIS_PER_DAY * 7;
+
+	private int methodId;
+
+	private static String[] shortDayNames = new String[] {
+		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+	};
+
+	private static String[] longDayNames = new String[] {
+		"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+	};
+
+	private static String[] shortMonthNames = new String[] {
+		"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+	};
+
+	private static String[] longMonthNames = new String[] {
+		"January", "February", "March", "April", "May", "June",
+		"July", "August", "September", "October", "November", "December"
+	};
+
 	static {
 		funcnames = new String[NUM_FUNCS];
 		funcnames[DATE] = "date";
@@ -63,32 +103,10 @@ public class OsLib implements JavaFunction {
 		}
 	}
 
-	private static final String TABLE_FORMAT = "*t";
-	private static final String DEFAULT_FORMAT = "%c";
-	
-	private static final String YEAR = "year";
-	private static final String MONTH = "month";
-	private static final String DAY = "day";
-	private static final String HOUR = "hour";
-	private static final String MIN = "min";
-	private static final String SEC = "sec";
-	private static final String WDAY = "wday";
-	private static final String YDAY = "yday";
-	private static final Object MILLISECOND = "milli";
-	//private static final String ISDST = "isdst";
-
-	private static TimeZone tzone = TimeZone.getDefault();
 	public static void setTimeZone (TimeZone tz) {
 		tzone = tz;
 	}
-	
-	public static final int TIME_DIVIDEND = 1000; // number to divide by for converting from milliseconds.
-	public static final double TIME_DIVIDEND_INVERTED = 1.0 / TIME_DIVIDEND; // number to divide by for converting from milliseconds.
-	private static final int MILLIS_PER_DAY = TIME_DIVIDEND * 60 * 60 * 24;
-	private static final int MILLIS_PER_WEEK = MILLIS_PER_DAY * 7;
-	
-	
-	private int methodId;
+
 	private OsLib(int methodId) {
 		this.methodId = methodId;
 	}
@@ -96,9 +114,9 @@ public class OsLib implements JavaFunction {
 	public int call(LuaCallFrame cf, int nargs) {
 		switch(methodId) {
 		case DATE: return date(cf, nargs);
-		case DIFFTIME: return difftime(cf, nargs);
+		case DIFFTIME: return difftime(cf);
 		case TIME: return time(cf, nargs);
-		default: throw new RuntimeException("Undefined method called on os.");
+		default: throw new IllegalStateException("Undefined method called on os.");
 		}
 	}
 
@@ -114,7 +132,7 @@ public class OsLib implements JavaFunction {
 		return 1;
 	}
 
-	private int difftime(LuaCallFrame cf, int nargs) {
+	private int difftime(LuaCallFrame cf) {
 		double t2 = BaseLib.rawTonumber(cf.get(0)).doubleValue();
 		double t1 = BaseLib.rawTonumber(cf.get(1)).doubleValue();
 		cf.push(LuaState.toDouble(t2-t1));
@@ -160,24 +178,7 @@ public class OsLib implements JavaFunction {
         	return formatTime(format.substring(si), calendar);
         }
 	}
-	
-	private static String[] shortDayNames = new String[] {
-		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-	};
-	
-	private static String[] longDayNames = new String[] {
-		"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-	};
-	
-	private static String[] shortMonthNames = new String[] {
-		"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
-	};
-	
-	private static String[] longMonthNames = new String[] {
-		"January", "February", "March", "April", "May", "June",
-		"July", "August", "September", "October", "November", "December"
-	};
-	
+
 	public static String formatTime(String format, Calendar cal) {
 
         StringBuffer buffer = new StringBuffer();
@@ -229,9 +230,9 @@ public class OsLib implements JavaFunction {
             */
             case 'y': return Integer.toString(cal.get(Calendar.YEAR) % 100);
             case 'Y': return Integer.toString(cal.get(Calendar.YEAR));
-            case 'Z': return cal.getTimeZone().getID();                    
+            case 'Z': return cal.getTimeZone().getID();
+			default: return null; // bad input format.
         }
-        return null; // bad input format.
 	}
 
 	public static LuaTable getTableFromDate(Calendar c) {

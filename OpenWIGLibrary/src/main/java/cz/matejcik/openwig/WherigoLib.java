@@ -127,7 +127,7 @@ public class WherigoLib implements JavaFunction {
 
 	public static void register(LuaState state) {
 		
-		if (env.get(DEVICE_ID) == null) throw new RuntimeException("set your DeviceID! WherigoLib.env.put(WherigoLib.DEVICE_ID, \"some value\")");
+		if (env.get(DEVICE_ID) == null) throw new IllegalStateException("set your DeviceID! WherigoLib.env.put(WherigoLib.DEVICE_ID, \"some value\")");
 		
 		LuaTable environment = state.getEnvironment();
 
@@ -235,7 +235,7 @@ public class WherigoLib implements JavaFunction {
 			WherigoLib maker = (WherigoLib)callFrame.get(0);
 			Object makee = callFrame.get(1);
 			return callFrame.push(LuaState.toBoolean(maker.klass == makee.getClass()));
-		} catch (ClassCastException e) { throw new RuntimeException("bad arguments to object:made"); }
+		} catch (ClassCastException e) { throw new IllegalStateException("bad arguments to object:made"); }
 	}
 	
 	private int construct(EventTable what, LuaCallFrame callFrame, int nArguments) {

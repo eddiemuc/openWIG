@@ -145,7 +145,7 @@ public class Savegame {
 	private int findJavafuncId (JavaFunction javafunc) {
 		Integer id = (Integer)javafuncToIdMap.get(javafunc);
 		if (id != null) return id.intValue();
-		else throw new RuntimeException("javafunc not found in map!");
+		else throw new IllegalStateException("javafunc not found in map!");
 	}
 
 	private JavaFunction findJavafuncObject (int id) {
