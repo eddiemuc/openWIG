@@ -183,6 +183,10 @@ public class ZonePoint implements LuaTable, Serializable {
 		}
 	}
 
+	public Object[] keys() {
+		return new Object[] { "longitude", "latitude", "altitude" };
+	}
+
 	public Object rawget (Object key) {
 		if (key == null) return null;
 		String name = key.toString();

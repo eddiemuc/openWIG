@@ -1,12 +1,20 @@
 package cz.matejcik.openwig;
 
-import cz.matejcik.openwig.formats.*;
-import cz.matejcik.openwig.platform.*;
-import se.krka.kahlua.vm.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.Calendar;
 
-import java.io.*;
-import java.util.*;
-
+import cz.matejcik.openwig.formats.CartridgeFile;
+import cz.matejcik.openwig.formats.Savegame;
+import cz.matejcik.openwig.platform.LocationService;
+import cz.matejcik.openwig.platform.UI;
+import se.krka.kahlua.vm.LuaClosure;
+import se.krka.kahlua.vm.LuaPrototype;
+import se.krka.kahlua.vm.LuaState;
+import se.krka.kahlua.vm.LuaTable;
 import util.BackgroundRunner;
 
 
@@ -233,15 +241,17 @@ public class Engine implements Runnable {
 	/** utility function to dump stack trace and show a semi-meaningful error */
 	public static void stacktrace (Throwable e) {
 		e.printStackTrace();
-		String msg;
+		final StringBuilder msg = new StringBuilder(e.toString());
 		if (state != null) {
 			System.out.println(state.currentThread.stackTrace);
-			msg = e.toString() + "\n\nstack trace: " + state.currentThread.stackTrace;
-		} else {
-			msg = e.toString();
+			msg.append("\nstack trace: " + state.currentThread.stackTrace);
 		}
-		log(msg, LOG_ERROR);
-		ui.showError(msg);
+		for(StackTraceElement ste : e.getStackTrace()) {
+			msg.append("\nat " + ste);
+		}
+
+		log(msg.toString(), LOG_ERROR);
+		ui.showError(msg.toString());
 	}
 
 	/** stops Engine */

@@ -1179,7 +1179,7 @@ public class LuaState {
 					return null;
 				}
 				throw new RuntimeException("attempted index of non-table: "
-						+ curObj);
+						+ table + " (key: " + key + ")");
 			}
 			if (metaOp instanceof JavaFunction || metaOp instanceof LuaClosure) {
 				Object res = call(metaOp, table, key, null);
@@ -1210,7 +1210,7 @@ public class LuaState {
 				}
 			} else {
 				metaOp = getMetaOp(curObj, "__newindex");
-				BaseLib.luaAssert(metaOp != null,	"attempted index of non-table");
+				BaseLib.luaAssert(metaOp != null,	"attempted index of non-table: " + table + "(key: " + key + ")");
 			}
 			if (metaOp instanceof JavaFunction || metaOp instanceof LuaClosure) {
 				call(metaOp, table, key, value);

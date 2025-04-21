@@ -4,6 +4,7 @@ import se.krka.kahlua.stdlib.BaseLib;
 import se.krka.kahlua.vm.*;
 
 import java.io.*;
+import java.util.Date;
 
 public class EventTable implements LuaTable, Serializable {
 
@@ -22,7 +23,7 @@ public class EventTable implements LuaTable, Serializable {
 		}
 
 		public int call (LuaCallFrame callFrame, int nArguments) {
-			callFrame.push(parent.luaTostring());
+			callFrame.push(parent.toString());
 			return 1;
 		}
 	};
@@ -135,7 +136,32 @@ public class EventTable implements LuaTable, Serializable {
 	}
 
 	public String toString()  {
-		return (name == null ? "(unnamed)" : name);
+		final StringBuilder sb = new StringBuilder(baseToString(this));
+
+		for (Object key : table.keys()) {
+			sb.append("/" + key + "=");
+			final Object value = table.rawget(key);
+			if (value == null) {
+				sb.append("nil");
+			} else if (value.getClass().isPrimitive() ||
+				value instanceof Number ||
+				value instanceof String ||
+				value instanceof Character ||
+				value instanceof Boolean ||
+				value instanceof Date) {
+				sb.append(value);
+			} else if (value instanceof EventTable) {
+				sb.append(baseToString((EventTable) value));
+			} else {
+				sb.append(value.getClass().getName());
+			}
+		}
+		return sb.toString();
+	}
+
+	private static String baseToString(final EventTable et) {
+		return "[" + et.getClass().getSimpleName() + "]" +
+			(et.name == null ? "(unnamed)" : et.name);
 	}
 
 	public void rawset(Object key, Object value) {
@@ -162,4 +188,6 @@ public class EventTable implements LuaTable, Serializable {
 	public Object next (Object key) { return table.next(key); }
 
 	public int len () { return table.len(); }
+
+	public Object[] keys() { return table.keys(); }
 }
