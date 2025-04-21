@@ -23,6 +23,8 @@ THE SOFTWARE.
 package se.krka.kahlua.vm;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import se.krka.kahlua.stdlib.BaseLib;
 
@@ -400,6 +402,16 @@ public final class LuaTableImpl implements LuaTable {
 			low++;
 		}
 		return low;
+	}
+
+	public final Object[] keys() {
+		final List<Object> list = new ArrayList<>();
+		for(Object key : keys) {
+			if (key != null) {
+				list.add(key);
+			}
+		}
+		return list.toArray(new Object[0]);
 	}
 	
 	public static int luaHashcode(Object a) {

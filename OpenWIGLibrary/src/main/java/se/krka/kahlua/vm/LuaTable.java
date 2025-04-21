@@ -31,4 +31,7 @@ public interface LuaTable {
 	
 	Object next(Object key);
 	int len();
+
+	Object[] keys();
+
 }
